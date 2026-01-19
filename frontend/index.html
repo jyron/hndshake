@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Living Timeline - History as it happens</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=IBM+Plex+Mono:wght@300;400;500&family=Spectral:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Living Timeline</h1>
+        <p class="tagline">History as experienced by those who lived it</p>
+        <div class="timestamp-badge" id="current-date"></div>
+      </header>
+
+      <div class="main-grid">
+        <div>
+          <h2 class="section-title">Post Your Perspective</h2>
+          <div class="post-form">
+            <form id="post-form">
+              <div class="form-group">
+                <label for="event">What event?</label>
+                <input
+                  type="text"
+                  id="event"
+                  name="event"
+                  list="event-suggestions"
+                  required
+                />
+                <datalist id="event-suggestions"></datalist>
+                <p class="note">Type a new event or select an existing one</p>
+              </div>
+
+              <div class="form-group">
+                <label for="perspective">Your perspective</label>
+                <textarea
+                  id="perspective"
+                  name="perspective"
+                  required
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <div class="inline-fields">
+                  <div>
+                    <label for="age">Age</label>
+                    <select id="age" name="age" required>
+                      <option value="">Select</option>
+                      <option value="under-18">Under 18</option>
+                      <option value="18-24">18-24</option>
+                      <option value="25-34">25-34</option>
+                      <option value="35-44">35-44</option>
+                      <option value="45-54">45-54</option>
+                      <option value="55-64">55-64</option>
+                      <option value="65+">65+</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="gender">Gender</label>
+                    <select id="gender" name="gender">
+                      <option value="">Prefer not to say</option>
+                      <option value="M">Male</option>
+                      <option value="F">Female</option>
+                      <option value="NB">Non-binary</option>
+                      <option value="O">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" required />
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit">Submit Entry</button>
+            </form>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="section-title">Recent Entries</h2>
+          <div class="filters">
+            <button class="filter-btn active" data-filter="all">
+              All Events
+            </button>
+          </div>
+          <div class="feed" id="feed">
+            <div class="empty-state">
+              No entries yet. Be the first to share your perspective.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://localhost:8080/api";
+
+      // Set current date
+      const dateOptions = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      };
+      document.getElementById("current-date").textContent =
+        new Date().toLocaleDateString("en-US", dateOptions);
+
+      // Load events for autocomplete
+      async function loadEvents() {
+        try {
+          const response = await fetch(`${API_URL}/events`);
+          const events = await response.json();
+          const datalist = document.getElementById("event-suggestions");
+          datalist.innerHTML = events
+            .map((event) => `<option value="${event}">`)
+            .join("");
+        } catch (error) {
+          console.error("Error loading events:", error);
+        }
+      }
+
+      // Load posts
+      async function loadPosts(event = null) {
+        try {
+          const url =
+            event && event !== "all"
+              ? `${API_URL}/posts?event=${encodeURIComponent(event)}`
+              : `${API_URL}/posts`;
+
+          const response = await fetch(url);
+          const posts = await response.json();
+
+          const feed = document.getElementById("feed");
+
+          if (posts.length === 0) {
+            feed.innerHTML =
+              '<div class="empty-state">No entries yet. Be the first to share your perspective.</div>';
+            return;
+          }
+
+          feed.innerHTML = posts.map((post) => createPostHTML(post)).join("");
+        } catch (error) {
+          console.error("Error loading posts:", error);
+          document.getElementById("feed").innerHTML =
+            '<div class="empty-state">Error loading entries. Please refresh the page.</div>';
+        }
+      }
+
+      // Create post HTML
+      function createPostHTML(post) {
+        const timeAgo = getTimeAgo(new Date(post.created_at));
+        const genderText =
+          post.gender && post.gender !== "Not specified"
+            ? `, ${post.gender}`
+            : "";
+
+        return `
+                <div class="post" data-event="${post.event_name}">
+                    <div class="post-header">
+                        <div class="post-event">${post.event_name}</div>
+                        <div class="post-meta">
+                            ${post.age_range}${genderText}<br>
+                            ${post.location}
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        ${escapeHTML(post.content)}
+                    </div>
+                    <div class="post-timestamp">Posted ${timeAgo}</div>
+                </div>
+            `;
+      }
+
+      // Time ago helper
+      function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        const intervals = {
+          year: 31536000,
+          month: 2592000,
+          week: 604800,
+          day: 86400,
+          hour: 3600,
+          minute: 60,
+        };
+
+        for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+          const interval = Math.floor(seconds / secondsInUnit);
+          if (interval >= 1) {
+            return `${interval} ${unit}${interval === 1 ? "" : "s"} ago`;
+          }
+        }
+
+        return "just now";
+      }
+
+      // Escape HTML to prevent XSS
+      function escapeHTML(str) {
+        const div = document.createElement("div");
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      // Form submission
+      document
+        .getElementById("post-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData(e.target);
+          const post = {
+            event_name: formData.get("event"),
+            content: formData.get("perspective"),
+            age_range: formData.get("age"),
+            gender: formData.get("gender") || "",
+            location: formData.get("location"),
+          };
+
+          try {
+            const response = await fetch(`${API_URL}/posts`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(post),
+            });
+
+            if (!response.ok) {
+              throw new Error("Failed to submit post");
+            }
+
+            // Reset form
+            e.target.reset();
+
+            // Reload posts and events
+            await Promise.all([loadPosts(), loadEvents()]);
+
+            // Update filters
+            updateFilters();
+
+            // Scroll to top of feed
+            document
+              .querySelector(".feed")
+              .scrollIntoView({ behavior: "smooth", block: "start" });
+
+            // Show success message (optional)
+            alert("Your perspective has been shared!");
+          } catch (error) {
+            console.error("Error submitting post:", error);
+            alert("Failed to submit your perspective. Please try again.");
+          }
+        });
+
+      // Update filter buttons
+      async function updateFilters() {
+        try {
+          const response = await fetch(`${API_URL}/events`);
+          const events = await response.json();
+
+          const filterContainer = document.querySelector(".filters");
+          filterContainer.innerHTML =
+            '<button class="filter-btn active" data-filter="all">All Events</button>';
+
+          events.forEach((event) => {
+            const btn = document.createElement("button");
+            btn.className = "filter-btn";
+            btn.dataset.filter = event;
+            btn.textContent = event;
+            filterContainer.appendChild(btn);
+          });
+
+          // Reattach event listeners
+          attachFilterListeners();
+        } catch (error) {
+          console.error("Error updating filters:", error);
+        }
+      }
+
+      // Attach filter listeners
+      function attachFilterListeners() {
+        document.querySelectorAll(".filter-btn").forEach((btn) => {
+          btn.addEventListener("click", function () {
+            // Update active button
+            document
+              .querySelectorAll(".filter-btn")
+              .forEach((b) => b.classList.remove("active"));
+            this.classList.add("active");
+
+            // Load filtered posts
+            loadPosts(this.dataset.filter);
+          });
+        });
+      }
+
+      // Initial load
+      loadPosts();
+      loadEvents();
+      updateFilters();
+      attachFilterListeners();
+
+      // Refresh posts every 30 seconds
+      setInterval(() => {
+        const activeFilter = document.querySelector(".filter-btn.active");
+        if (activeFilter) {
+          loadPosts(activeFilter.dataset.filter);
+        }
+      }, 30000);
+    </script>
+  </body>
+</html>
