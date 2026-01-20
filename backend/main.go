@@ -34,6 +34,7 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
+	runMigrations(db) 
 
 	// Initialize handlers
 	h := NewHandler(db)
