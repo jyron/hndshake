@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -46,9 +48,9 @@ func (db *DB) Close() {
 // CreatePost inserts a new post into the database
 func (db *DB) CreatePost(ctx context.Context, req CreatePostRequest, ipHash string) (*Post, error) {
 	query := `
-		INSERT INTO posts (event_name, content, age_range, gender, location, ip_hash)
+		INSERT INTO posts (event_name, content, age, gender, location, ip_hash)
 		VALUES ($1, $2, $3, $4, $5, $6)
-		RETURNING id, event_name, content, age_range, gender, location, created_at
+		RETURNING id, event_name, content, age, gender, location, created_at
 	`
 
 	var post Post
@@ -57,7 +59,7 @@ func (db *DB) CreatePost(ctx context.Context, req CreatePostRequest, ipHash stri
 		query,
 		req.EventName,
 		req.Content,
-		req.AgeRange,
+		req.Age,
 		req.Gender,
 		req.Location,
 		ipHash,
@@ -65,7 +67,7 @@ func (db *DB) CreatePost(ctx context.Context, req CreatePostRequest, ipHash stri
 		&post.ID,
 		&post.EventName,
 		&post.Content,
-		&post.AgeRange,
+		&post.Age,
 		&post.Gender,
 		&post.Location,
 		&post.CreatedAt,
@@ -85,7 +87,7 @@ func (db *DB) GetPosts(ctx context.Context, eventFilter string, limit int, offse
 
 	if eventFilter != "" {
 		query = `
-			SELECT id, event_name, content, age_range, gender, location, created_at
+			SELECT id, event_name, content, age, gender, location, created_at
 			FROM posts
 			WHERE event_name = $1
 			ORDER BY created_at DESC
@@ -94,7 +96,7 @@ func (db *DB) GetPosts(ctx context.Context, eventFilter string, limit int, offse
 		args = []interface{}{eventFilter, limit, offset}
 	} else {
 		query = `
-			SELECT id, event_name, content, age_range, gender, location, created_at
+			SELECT id, event_name, content, age, gender, location, created_at
 			FROM posts
 			ORDER BY created_at DESC
 			LIMIT $1 OFFSET $2
@@ -115,7 +117,7 @@ func (db *DB) GetPosts(ctx context.Context, eventFilter string, limit int, offse
 			&post.ID,
 			&post.EventName,
 			&post.Content,
-			&post.AgeRange,
+			&post.Age,
 			&post.Gender,
 			&post.Location,
 			&post.CreatedAt,
@@ -182,28 +184,78 @@ func (db *DB) GetPostCountByIPInWindow(ctx context.Context, ipHash string, windo
 	return count, nil
 }
 
+// runMigrations executes all pending database migrations in order.
+// It reads migration files from the migrations/ folder and tracks which have been run.
 func runMigrations(db *DB) {
-    migration := `
-        CREATE TABLE IF NOT EXISTS posts (
-            id SERIAL PRIMARY KEY,
-            event_name VARCHAR(200) NOT NULL,
-            content TEXT NOT NULL,
-            age_range VARCHAR(20) NOT NULL,
-            gender VARCHAR(20),
-            location VARCHAR(200) NOT NULL,
-            ip_hash VARCHAR(64) NOT NULL,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-        );
-        
-        CREATE INDEX IF NOT EXISTS idx_posts_event_name ON posts(event_name);
-        CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC);
-        CREATE INDEX IF NOT EXISTS idx_posts_event_created ON posts(event_name, created_at DESC);
-        CREATE INDEX IF NOT EXISTS idx_posts_ip_hash_created ON posts(ip_hash, created_at);
-    `
-    
-    _, err := db.conn.Exec(migration)
-    if err != nil {
-        log.Fatalf("Failed to run migrations: %v", err)
-    }
-    log.Println("Migrations completed successfully")
+	// Create schema_migrations table to track applied migrations
+	_, err := db.conn.Exec(`
+		CREATE TABLE IF NOT EXISTS schema_migrations (
+			version VARCHAR(255) PRIMARY KEY,
+			applied_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	if err != nil {
+		log.Fatalf("Failed to create schema_migrations table: %v", err)
+	}
+
+	// Read migration files from migrations/ directory
+	migrationFiles, err := os.ReadDir("migrations")
+	if err != nil {
+		log.Fatalf("Failed to read migrations directory: %v", err)
+	}
+
+	// Sort migration files by name to ensure order
+	var sortedFiles []string
+	for _, file := range migrationFiles {
+		if !file.IsDir() && strings.HasSuffix(file.Name(), ".sql") {
+			sortedFiles = append(sortedFiles, file.Name())
+		}
+	}
+	
+	// Files are already sorted alphabetically (001_, 002_, etc.)
+	for _, filename := range sortedFiles {
+		// Extract version from filename (e.g., "001_init.sql" -> "001_init")
+		version := strings.TrimSuffix(filename, ".sql")
+
+		// Check if migration has been applied
+		var exists bool
+		err := db.conn.QueryRow(
+			"SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE version = $1)",
+			version,
+		).Scan(&exists)
+		if err != nil {
+			log.Fatalf("Failed to check migration status for %s: %v", version, err)
+		}
+
+		if exists {
+			log.Printf("Migration %s already applied, skipping", version)
+			continue
+		}
+
+		// Read migration file
+		sqlBytes, err := os.ReadFile(fmt.Sprintf("migrations/%s", filename))
+		if err != nil {
+			log.Fatalf("Failed to read migration file %s: %v", filename, err)
+		}
+
+		// Run the migration
+		log.Printf("Applying migration: %s", version)
+		_, err = db.conn.Exec(string(sqlBytes))
+		if err != nil {
+			log.Fatalf("Failed to run migration %s: %v", version, err)
+		}
+
+		// Record the migration
+		_, err = db.conn.Exec(
+			"INSERT INTO schema_migrations (version) VALUES ($1)",
+			version,
+		)
+		if err != nil {
+			log.Fatalf("Failed to record migration %s: %v", version, err)
+		}
+
+		log.Printf("Migration %s completed successfully", version)
+	}
+
+	log.Println("All migrations completed successfully")
 }

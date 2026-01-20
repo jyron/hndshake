@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Living Timeline - History as it happens</title>
+    <title>Worldwide Archive</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=IBM+Plex+Mono:wght@300;400;500&family=Spectral:wght@300;400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
@@ -13,9 +13,9 @@
   <body>
     <div class="container">
       <header>
-        <h1>Living Timeline</h1>
-        <p class="tagline">History as experienced by those who lived it</p>
         <div class="timestamp-badge" id="current-date"></div>
+        <h1>Worldwide Archive</h1>
+        <p class="tagline">History as witnessed by the world</p>
       </header>
 
       <div class="main-grid">
@@ -49,30 +49,33 @@
                 <div class="inline-fields">
                   <div>
                     <label for="age">Age</label>
-                    <select id="age" name="age" required>
-                      <option value="">Select</option>
-                      <option value="under-18">Under 18</option>
-                      <option value="18-24">18-24</option>
-                      <option value="25-34">25-34</option>
-                      <option value="35-44">35-44</option>
-                      <option value="45-54">45-54</option>
-                      <option value="55-64">55-64</option>
-                      <option value="65+">65+</option>
-                    </select>
+                    <input
+                      type="number"
+                      id="age"
+                      name="age"
+                      min="1"
+                      max="120"
+                      required
+                      placeholder="Your age"
+                    />
                   </div>
                   <div>
-                    <label for="gender">Gender</label>
+                    <label for="gender">Sex</label>
                     <select id="gender" name="gender">
                       <option value="">Prefer not to say</option>
                       <option value="M">Male</option>
                       <option value="F">Female</option>
-                      <option value="NB">Non-binary</option>
-                      <option value="O">Other</option>
                     </select>
                   </div>
                   <div>
                     <label for="location">Location</label>
-                    <input type="text" id="location" name="location" required />
+                    <input
+                      type="text"
+                      id="location"
+                      name="location"
+                      required
+                      placeholder="City, Country"
+                    />
                   </div>
                 </div>
               </div>
@@ -90,8 +93,9 @@
             </button>
           </div>
           <div class="feed" id="feed">
-            <div class="empty-state">
-              No entries yet. Be the first to share your perspective.
+            <div class="loading-indicator" id="loading">
+              <div class="loading-spinner"></div>
+              <p>Loading perspectives...</p>
             </div>
           </div>
         </div>
@@ -127,6 +131,16 @@
 
       // Load posts
       async function loadPosts(event = null) {
+        const feed = document.getElementById("feed");
+
+        // Show loading indicator
+        feed.innerHTML = `
+          <div class="loading-indicator">
+            <div class="loading-spinner"></div>
+            <p>Loading perspectives...</p>
+          </div>
+        `;
+
         try {
           const url =
             event && event !== "all"
@@ -135,8 +149,6 @@
 
           const response = await fetch(url);
           const posts = await response.json();
-
-          const feed = document.getElementById("feed");
 
           if (posts.length === 0) {
             feed.innerHTML =
@@ -147,7 +159,7 @@
           feed.innerHTML = posts.map((post) => createPostHTML(post)).join("");
         } catch (error) {
           console.error("Error loading posts:", error);
-          document.getElementById("feed").innerHTML =
+          feed.innerHTML =
             '<div class="empty-state">Error loading entries. Please refresh the page.</div>';
         }
       }
@@ -157,7 +169,7 @@
         const timeAgo = getTimeAgo(new Date(post.created_at));
         const genderText =
           post.gender && post.gender !== "Not specified"
-            ? `, ${post.gender}`
+            ? `/${post.gender}`
             : "";
 
         return `
@@ -165,8 +177,7 @@
                     <div class="post-header">
                         <div class="post-event">${post.event_name}</div>
                         <div class="post-meta">
-                            ${post.age_range}${genderText}<br>
-                            ${post.location}
+                            ${post.age}${genderText}/${post.location}
                         </div>
                     </div>
                     <div class="post-content">
@@ -217,7 +228,7 @@
           const post = {
             event_name: formData.get("event"),
             content: formData.get("perspective"),
-            age_range: formData.get("age"),
+            age: parseInt(formData.get("age"), 10),
             gender: formData.get("gender") || "",
             location: formData.get("location"),
           };

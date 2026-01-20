@@ -123,12 +123,9 @@ func validateCreatePostRequest(req CreatePostRequest) error {
 		return &ValidationError{"content must be 5000 characters or less"}
 	}
 
-	if req.AgeRange == "" {
-		return &ValidationError{"age_range is required"}
-	}
-	validAgeRanges := []string{"under-18", "18-24", "25-34", "35-44", "45-54", "55-64", "65+"}
-	if !contains(validAgeRanges, req.AgeRange) {
-		return &ValidationError{"invalid age_range"}
+	// Age must be between 1 and 120
+	if req.Age < 1 || req.Age > 120 {
+		return &ValidationError{"age must be between 1 and 120"}
 	}
 
 	if req.Location == "" {
@@ -144,15 +141,6 @@ func validateCreatePostRequest(req CreatePostRequest) error {
 	}
 
 	return nil
-}
-
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
 }
 
 func computeIPHash(r *http.Request) string {

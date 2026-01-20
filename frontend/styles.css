@@ -5,288 +5,245 @@
 }
 
 :root {
-  --paper: #f9f7f1;
-  --ink: #1a1a1a;
-  --faded-ink: #666;
-  --border: #d4cdb8;
-  --highlight: #ff6b35;
-  --timestamp: #8b7355;
+  --background: #f8f9fa;
+  --surface: #ffffff;
+  --surface-alt: #f0f2f4;
+  --header-bg: #eaecf0;
+  --text: #202122;
+  --text-muted: #54595d;
+  --border: #a2a9b1;
+  --border-light: #c8ccd1;
+  --link: #3366cc;
 }
 
 body {
-  font-family: "Spectral", serif;
-  background: var(--paper);
-  color: var(--ink);
+  font-family: "Libre Baskerville", Georgia, serif;
+  background: var(--background);
+  color: var(--text);
   line-height: 1.6;
-  background-image: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 31px,
-    var(--border) 31px,
-    var(--border) 32px
-  );
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 60px 20px;
+  padding: 20px;
 }
 
 header {
-  border-bottom: 3px solid var(--ink);
-  padding-bottom: 40px;
-  margin-bottom: 60px;
-  position: relative;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  margin: -20px -20px 24px -20px;
 }
 
 h1 {
-  font-family: "Courier Prime", monospace;
-  font-size: 3.5rem;
-  font-weight: 700;
-  letter-spacing: -2px;
-  margin-bottom: 10px;
-  text-transform: uppercase;
+  font-size: 2rem;
+  font-weight: 400;
+  margin-bottom: 4px;
 }
 
 .tagline {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.95rem;
-  color: var(--faded-ink);
-  font-weight: 300;
-  letter-spacing: 0.5px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 .timestamp-badge {
-  position: absolute;
-  top: 0;
-  right: 0;
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.75rem;
-  color: var(--timestamp);
-  background: var(--paper);
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  letter-spacing: 1px;
+  float: right;
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
 .main-grid {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 40px;
-  margin-bottom: 60px;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
 }
 
 .section-title {
-  font-family: "Courier Prime", monospace;
-  font-size: 1.2rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid var(--ink);
-  padding-bottom: 8px;
+  font-size: 1.1rem;
+  font-weight: 400;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+  margin-bottom: 16px;
 }
 
 .post-form {
-  background: white;
-  border: 2px solid var(--ink);
-  padding: 30px;
-  box-shadow: 4px 4px 0 var(--ink);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  padding: 16px;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 label {
   display: block;
-  font-family: "IBM Plex Mono", monospace;
   font-size: 0.85rem;
-  margin-bottom: 8px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text);
 }
 
 input[type="text"],
 textarea,
 select {
   width: 100%;
-  padding: 12px;
+  padding: 8px;
   border: 1px solid var(--border);
-  background: var(--paper);
-  font-family: "Spectral", serif;
-  font-size: 1rem;
-  transition: border-color 0.2s;
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 0.95rem;
+  border-radius: 2px;
 }
 
 input[type="text"]:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: var(--ink);
+  border-color: var(--link);
 }
 
 textarea {
-  min-height: 120px;
+  min-height: 100px;
   resize: vertical;
-  line-height: 1.6;
 }
 
 .inline-fields {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
 }
 
 button {
-  font-family: "Courier Prime", monospace;
-  font-size: 1rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 14px 32px;
-  background: var(--ink);
-  color: var(--paper);
-  border: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  background: var(--surface);
+  color: var(--link);
+  border: 1px solid var(--border);
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 3px 3px 0 var(--highlight);
 }
 
 button:hover {
-  transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0 var(--highlight);
-}
-
-button:active {
-  transform: translate(3px, 3px);
-  box-shadow: 0 0 0 var(--highlight);
+  background: var(--background);
+  border-color: var(--link);
 }
 
 .feed {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 16px;
 }
 
 .post {
-  background: white;
-  border: 1px solid var(--border);
-  padding: 25px;
-  position: relative;
-  animation: fadeIn 0.5s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  padding: 16px;
 }
 
 .post-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 15px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .post-event {
-  font-family: "Courier Prime", monospace;
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: var(--ink);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--link);
 }
 
 .post-meta {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.75rem;
-  color: var(--faded-ink);
+  font-size: 0.8rem;
+  color: var(--text-muted);
   text-align: right;
-  line-height: 1.4;
-}
-
-.post-location {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.85rem;
-  color: var(--timestamp);
-  margin-bottom: 12px;
-  font-weight: 500;
 }
 
 .post-content {
-  font-size: 1.05rem;
-  line-height: 1.7;
-  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.65;
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
 .post-timestamp {
-  font-family: "IBM Plex Mono", monospace;
   font-size: 0.75rem;
-  color: var(--timestamp);
-  margin-top: 15px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-light);
 }
 
 .filters {
   display: flex;
-  gap: 10px;
-  margin-bottom: 30px;
-  flex-wrap: wrap;
+  gap: 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
 }
 
 .filter-btn {
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.8rem;
-  padding: 8px 16px;
+  font-size: 0.85rem;
+  padding: 8px 12px;
   background: transparent;
-  color: var(--ink);
-  border: 1px solid var(--border);
-  box-shadow: none;
-  text-transform: none;
-  letter-spacing: 0.5px;
+  color: var(--link);
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
 }
 
 .filter-btn:hover {
-  background: var(--ink);
-  color: var(--paper);
-  transform: none;
-  box-shadow: none;
+  background: transparent;
+  border-bottom-color: var(--border);
 }
 
 .filter-btn.active {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-bottom-color: var(--surface);
 }
 
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
-  color: var(--faded-ink);
+  padding: 40px 20px;
+  color: var(--text-muted);
   font-style: italic;
+  background: var(--surface);
+  border: 1px dashed var(--border);
 }
 
 .note {
-  font-family: "IBM Plex Mono", monospace;
   font-size: 0.75rem;
-  color: var(--faded-ink);
-  margin-top: 8px;
+  color: var(--text-muted);
+  margin-top: 4px;
   font-style: italic;
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  margin: 0 auto 12px;
+  border: 2px solid var(--border-light);
+  border-top-color: var(--link);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 768px) {
@@ -295,7 +252,7 @@ button:active {
   }
 
   h1 {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
   }
 
   .inline-fields {
@@ -303,8 +260,8 @@ button:active {
   }
 
   .timestamp-badge {
-    position: static;
-    display: inline-block;
-    margin-top: 10px;
+    float: none;
+    display: block;
+    margin-top: 8px;
   }
 }

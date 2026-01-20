@@ -6,7 +6,7 @@ type Post struct {
 	ID        int       `json:"id"`
 	EventName string    `json:"event_name"`
 	Content   string    `json:"content"`
-	AgeRange  string    `json:"age_range"`
+	Age       int       `json:"age"`
 	Gender    string    `json:"gender"`
 	Location  string    `json:"location"`
 	CreatedAt time.Time `json:"created_at"`
@@ -15,7 +15,7 @@ type Post struct {
 type CreatePostRequest struct {
 	EventName string `json:"event_name"`
 	Content   string `json:"content"`
-	AgeRange  string `json:"age_range"`
+	Age       int    `json:"age"`
 	Gender    string `json:"gender"`
 	Location  string `json:"location"`
 }
