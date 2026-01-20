@@ -15,9 +15,8 @@ import (
 
 func main() {
 	// Get configuration from environment
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	if _, err := os.Stat(".env"); err == nil {
+		_ = godotenv.Load()
 	}
 	databaseURL := getEnv("DATABASE_URL", "")
 	if databaseURL == "" {
