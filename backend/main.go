@@ -24,7 +24,7 @@ func main() {
 	}
 
 	port := getEnv("PORT", "8080")
-	allowedOrigins := getEnv("ALLOWED_ORIGINS", "http://localhost:3000")
+	allowedOrigins := getEnv("ALLOWED_ORIGINS","https://sparkling-block-5c5e.jyron-dev.workers.dev/", "http://localhost:3000")
 	rateLimitRequests := getEnvInt("RATE_LIMIT_REQUESTS", 5)
 	rateLimitWindowMinutes := getEnvInt("RATE_LIMIT_WINDOW_MINUTES", 60)
 
